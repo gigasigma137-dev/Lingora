@@ -1,0 +1,44 @@
+name: Build Lingora APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract project
+        run: |
+          unzip -q LingoPaw_Android_APK_Build.zip
+          cd lingopaw_flutter
+          flutter create . --platforms=android --org com.lingora.app
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Build APK
+        working-directory: lingopaw_flutter
+        run: |
+          flutter pub get
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Lingora-APK
+          path: lingopaw_flutter/build/app/outputs/flutter-apk/app-release.apk
